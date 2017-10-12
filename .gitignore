@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+output_files/
+
+\.idea/
+
+\.DS_Store
