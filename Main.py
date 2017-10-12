@@ -8,7 +8,7 @@ from code_base.data_utils import get_CIFAR2_data
 from code_base.layers import *
 from code_base.solver import Solver
 
-settings.print_time_analysis(False)
+settings.print_time_analysis(True)
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
@@ -43,7 +43,7 @@ model = ThreeLayerConvNet(num_classes=2, weight_scale=0.001, hidden_dim=512, reg
                           filter_size=3)
 
 solver = Solver(model, data,
-                num_epochs=1, batch_size=9000,
+                num_epochs=20, batch_size=128,
                 update_rule='adam',
                 optim_config={
                     'learning_rate': 1e-3,
