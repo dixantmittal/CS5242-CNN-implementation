@@ -4,11 +4,11 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 
 from code_base.classifiers.cnn import *
-from code_base.data_utils import get_CIFAR2_data
+from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
-settings.print_time_analysis(True)
+settings.print_time_analysis(False)
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
@@ -39,8 +39,12 @@ small_data = {
     'y_val': data['y_val'],
 }
 
-model = ThreeLayerConvNet(num_classes=2, weight_scale=0.001, hidden_dim=512, reg=0.0001, num_filters=64,
-                          filter_size=3)
+to_load = input('\nDo you want to load pre-trained model? [y/n]: ')
+if to_load == 'y' or to_load == 'Y':
+    model = load_model('./models/cnn_model_conv64_fil5_fc512_numc2.p')
+else:
+    model = ThreeLayerConvNet(num_classes=2, weight_scale=0.001, hidden_dim=512, reg=0.0001, num_filters=64,
+                              filter_size=5)
 
 solver = Solver(model, data,
                 num_epochs=20, batch_size=128,
@@ -50,12 +54,15 @@ solver = Solver(model, data,
                 },
                 lr_decay=0.8,
                 num_train_samples=100,
-                num_val_samples=100,
                 verbose=True, print_every=1)
 start = datetime.datetime.now()
 solver.train()
 end = datetime.datetime.now()
 print('Total time taken: ', end - start)
+
+to_save = input('\nDo you want to save this? [y/n]: ')
+if to_save == 'y' or to_save == 'Y':
+    save_model(model, './models/cnn_model_conv64_fil5_fc512_numc2.p')
 
 plt.subplot(2, 1, 1)
 plt.plot(solver.loss_history, 'o')

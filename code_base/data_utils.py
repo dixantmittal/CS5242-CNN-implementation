@@ -173,3 +173,10 @@ def load_models(models_dir):
                 continue
     return models
 
+
+def save_model(model, model_file):
+    pickle.dump(model, open(model_file, 'wb'))
+
+
+def load_model(model_file):
+    return load_pickle(open(model_file, 'rb'))
