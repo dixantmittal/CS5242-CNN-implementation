@@ -3,13 +3,12 @@ from __future__ import print_function
 
 import matplotlib.pyplot as plt
 
-from code_base.classifiers.cnn import *
+import Models
 from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
 settings.time_analysis['logger_enabled'] = False
-settings.time_analysis['logger_level'] = 1
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
@@ -26,63 +25,79 @@ def rel_error(x, y):
 
 # Load the (preprocessed) CIFAR2 (airplane and bird) data.
 
-data = get_CIFAR2_data()
-for k, v in data.items():
-    print('%s:        ' % k, v.shape)
+def getSolver(model, data, alpha, alpha_decay, epoch=10, batch_size=128):
+    return Solver(model, data, num_epochs=epoch, batch_size=batch_size,
+                  update_rule='adam',
+                  optim_config={
+                      'learning_rate': alpha,
+                  }, lr_decay=alpha_decay, verbose=True, print_every=1)
 
-np.random.seed(231)
+
+def train_model(model_key):
+    print('\n\n>>>> MODEL - ' + model_key + ' <<<<')
+    model = Models.Models[model_key]
+    solver = getSolver(model=model, data=data, alpha=1e-3, alpha_decay=0.8, epoch=30)
+    start = datetime.datetime.now()
+    solver.train()
+    end = datetime.datetime.now()
+    print('Total time taken: ', end - start)
+
+    plot_graph(solver=solver, model_key=model_key)
+    save_model(model, './models/cnn_model_' + model_key + '.p')
+
+
+def plot_graph(solver, model_key):
+    plt.figure(1)
+    plt.clf()
+    plt.title(model_key)
+    plt.subplot(2, 1, 1)
+    plt.plot(solver.loss_history, 'o', ms=3, label=model_key)
+    plt.xlabel('iteration')
+    plt.ylabel('loss')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(solver.train_acc_history, '-o')
+    plt.plot(solver.val_acc_history, '-o')
+    plt.legend(['train', 'val'], loc='upper left')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.savefig('./plots/' + model_key + '.png')
+
+    plt.figure(2)
+    plt.subplot(2, 1, 1)
+    plt.plot(solver.loss_history, 'o', ms=3, label=model_key)
+    plt.legend(loc='upper right', prop={'size': 6})
+    plt.xlabel('iteration')
+    plt.ylabel('loss')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(solver.train_acc_history, '-o', ms=3, label=model_key + '[train]')
+    plt.plot(solver.val_acc_history, '-o', ms=3, label=model_key + '[val]')
+    plt.legend(loc='upper left', prop={'size': 6})
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.savefig('./plots/comparison.png')
+    # plt.show()
+    # plt.close()
+
+
+data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
+
+# create augmented data - mirror image
+# aug_X_train = np.flip(data['X_train'], 3)
+# data['X_train'] = np.concatenate((data['X_train'], aug_X_train), 0)
+# data['y_train'] = np.concatenate((data['y_train'], data['y_train']), 0)
 
 num_train = 100
-small_data = {
-    'X_train': data['X_train'][:num_train],
-    'y_train': data['y_train'][:num_train],
-    'X_val': data['X_val'],
-    'y_val': data['y_val'],
-}
+data['X_train'] = data['X_train'][:num_train]
+data['y_train'] = data['y_train'][:num_train]
 
-to_load = input('\nDo you want to load pre-trained model? [y/n]: ')
-if to_load == 'y' or to_load == 'Y':
-    model = load_model('./models/cnn_model_conv64_fil5_fc512_numc2_dropout_0.5.p')
-else:
-    model = ThreeLayerConvNet(num_classes=2, weight_scale=0.001, hidden_dim=512, reg=0.000001, num_filters=64,
-                              filter_size=5, dropout=0.5)
+for k, v in data.items():
+    print('%s:  ' % k, v.shape)
 
-solver = Solver(model, data,
-                num_epochs=1, batch_size=128,
-                update_rule='adam',
-                optim_config={
-                    'learning_rate': 1e-4,
-                },
-                lr_decay=0.8,
-                num_train_samples=1000,
-                verbose=True, print_every=1)
-start = datetime.datetime.now()
-solver.train()
-end = datetime.datetime.now()
-print('Total time taken: ', end - start)
-
-to_save = input('\nDo you want to save this? [y/n]: ')
-if to_save == 'y' or to_save == 'Y':
-    save_model(model, './models/cnn_model_conv64_fil5_fc512_numc2_dropout_0.5.p')
-
-plt.subplot(2, 1, 1)
-plt.plot(solver.loss_history, 'o')
-plt.xlabel('iteration')
-plt.ylabel('loss')
-
-plt.subplot(2, 1, 2)
-plt.plot(solver.train_acc_history, '-o')
-plt.plot(solver.val_acc_history, '-o')
-plt.legend(['train', 'val'], loc='upper left')
-plt.xlabel('epoch')
-plt.ylabel('accuracy')
-plt.show()
-
-# Visualize Filters
-from code_base.vis_utils import visualize_grid
-
-grid = visualize_grid(model.params['W1'].transpose(0, 2, 3, 1))
-plt.imshow(grid.astype('uint8'))
-plt.axis('off')
-plt.gcf().set_size_inches(5, 5)
-plt.show()
+train_model('conv64_filter5_fc512_drop0')
+train_model('conv64_filter5_fc512_drop05')
+train_model('conv128_filter3_fc1024_drop0')
+train_model('conv128_filter3_fc1024_drop05')
+train_model('conv32_filter7_fc256_drop0')
+train_model('conv32_filter7_fc256_drop05')
