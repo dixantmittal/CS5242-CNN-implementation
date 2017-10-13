@@ -245,6 +245,7 @@ class Solver(object):
             y = y[mask]
 
         # Compute predictions in batches
+        batch_size = np.minimum(batch_size, N)
         num_batches = N // batch_size
         if N % batch_size != 0:
             num_batches += 1

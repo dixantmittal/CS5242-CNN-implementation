@@ -114,10 +114,13 @@ class ThreeLayerConvNet(object):
         # self.bn_params[1] to the forward pass for the second batch normalization #
         # layer, etc.                                                              #
         ############################################################################
+        dropout_cache = {}
         conv_start_time = datetime.datetime.now()
         conv_out, conv_cache = conv_relu_pool_forward(X, W1, b1, conv_param, pool_param)
         fc_start_time = datetime.datetime.now()
         fc_out, fc_cache = affine_relu_forward(conv_out, W2, b2)
+        if (self.use_dropout):
+            fc_out, dropout_cache['D1'] = dropout_forward(fc_out, self.dropout_param)
         softmax_start_time = datetime.datetime.now()
         scores, softmax_cache = affine_forward(fc_out, W3, b3)
         softmax_end_time = datetime.datetime.now()
@@ -145,6 +148,8 @@ class ThreeLayerConvNet(object):
         affine_backward_time = datetime.datetime.now()
         dx, grads['W3'], grads['b3'] = affine_backward(dout, softmax_cache)
         affine_relu_backward_time = datetime.datetime.now()
+        if (self.use_dropout):
+            dx = dropout_backward(dx, dropout_cache['D1'])
         dx, grads['W2'], grads['b2'] = affine_relu_backward(dx, fc_cache)
         conv_relu_pool_backward_time = datetime.datetime.now()
         dx, grads['W1'], grads['b1'] = conv_relu_pool_backward(dx, conv_cache)

@@ -8,7 +8,8 @@ from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
-settings.time_analysis['logger_enabled'] = True
+settings.time_analysis['logger_enabled'] = False
+settings.time_analysis['logger_level'] = 1
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
@@ -41,19 +42,19 @@ small_data = {
 
 to_load = input('\nDo you want to load pre-trained model? [y/n]: ')
 if to_load == 'y' or to_load == 'Y':
-    model = load_model('./models/cnn_model_conv64_fil5_fc512_numc2.p')
+    model = load_model('./models/cnn_model_conv64_fil5_fc512_numc2_dropout_0.5.p')
 else:
-    model = ThreeLayerConvNet(num_classes=2, weight_scale=0.001, hidden_dim=512, reg=0.0001, num_filters=64,
-                              filter_size=5)
+    model = ThreeLayerConvNet(num_classes=2, weight_scale=0.001, hidden_dim=512, reg=0.000001, num_filters=64,
+                              filter_size=5, dropout=0.5)
 
 solver = Solver(model, data,
-                num_epochs=20, batch_size=128,
+                num_epochs=1, batch_size=128,
                 update_rule='adam',
                 optim_config={
-                    'learning_rate': 1e-3,
+                    'learning_rate': 1e-4,
                 },
                 lr_decay=0.8,
-                num_train_samples=100,
+                num_train_samples=1000,
                 verbose=True, print_every=1)
 start = datetime.datetime.now()
 solver.train()
@@ -62,7 +63,7 @@ print('Total time taken: ', end - start)
 
 to_save = input('\nDo you want to save this? [y/n]: ')
 if to_save == 'y' or to_save == 'Y':
-    save_model(model, './models/cnn_model_conv64_fil5_fc512_numc2.p')
+    save_model(model, './models/cnn_model_conv64_fil5_fc512_numc2_dropout_0.5.p')
 
 plt.subplot(2, 1, 1)
 plt.plot(solver.loss_history, 'o')
