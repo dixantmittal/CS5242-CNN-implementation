@@ -8,7 +8,7 @@ from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
-settings.print_time_analysis(False)
+settings.time_analysis['logger_enabled'] = True
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
