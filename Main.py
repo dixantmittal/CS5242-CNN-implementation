@@ -1,19 +1,15 @@
 # A bit of setup
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
-
 import Models
 import code_base.solver as slvr
+from Plotter import *
 from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
 settings.time_analysis['logger_enabled'] = False
 
-plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
 
 
 # for auto-reloading external modules
@@ -37,20 +33,17 @@ def getSolver(model, data, alpha, alpha_decay, epoch=10, batch_size=128):
 def train_model(model_key):
     slvr._file.write('\n\n>>>> MODEL - ' + model_key + ' <<<<')
     model = Models.Models[model_key]
-    solver = getSolver(model=model, data=data, alpha=1e-3, alpha_decay=0.8, epoch=30)
+    solver = getSolver(model=model, data=data, alpha=1e-3, alpha_decay=0.8, epoch=3)
     start = datetime.datetime.now()
     solver.train()
     end = datetime.datetime.now()
-    slvr._file.write('\nTotal time taken: '+ str(end - start))
+    slvr._file.write('\nTotal time taken: ' + str(end - start))
     slvr._file.flush()
-    
-    save_metrics(solver,model_key)
+
+    plot_graph(solver.loss_history, solver.train_acc_history, solver.val_acc_history, model_key=model_key)
     save_model(model, './models/cnn_model_' + model_key + '.p')
 
-def save_metrics(solver, model_key):
-    pickle.dump(solver.loss_history,open('./metrics/'+model_key+'_loss_history.p','wb'))
-    pickle.dump(solver.train_acc_history,open('./metrics/'+model_key+'_train_acc_history.p','wb'))
-    pickle.dump(solver.val_acc_history,open('./metrics/'+model_key+'_val_acc_history.p','wb'))
+
 
 data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 
@@ -59,10 +52,11 @@ data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 # data['X_train'] = np.concatenate((data['X_train'], aug_X_train), 0)
 # data['y_train'] = np.concatenate((data['y_train'], data['y_train']), 0)
 
+
 for k, v in data.items():
     print('%s:  ' % k, v.shape)
 
-#train_model('conv64_filter5_fc512_drop0')
+train_model('conv64_filter5_fc512_drop0')
 train_model('conv64_filter5_fc512_drop05')
 train_model('conv128_filter3_fc1024_drop0')
 train_model('conv128_filter3_fc1024_drop05')
