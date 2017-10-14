@@ -1,20 +1,14 @@
 # A bit of setup
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
-
 import Models
 import code_base.solver as slvr
+from Plotter import plot_graph
 from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
 settings.time_analysis['logger_enabled'] = False
-
-plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
-
 
 # for auto-reloading external modules
 # see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
@@ -23,8 +17,6 @@ def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
 
-
-# Load the (preprocessed) CIFAR2 (airplane and bird) data.
 
 def getSolver(model, data, alpha, alpha_decay, epoch=10, batch_size=128):
     return Solver(model, data, num_epochs=epoch, batch_size=batch_size,
@@ -41,16 +33,12 @@ def train_model(model_key):
     start = datetime.datetime.now()
     solver.train()
     end = datetime.datetime.now()
-    slvr._file.write('\nTotal time taken: '+ str(end - start))
+    slvr._file.write('\nTotal time taken: ' + str(end - start))
     slvr._file.flush()
-    
-    save_metrics(solver,model_key)
+
+    plot_graph(solver.loss_history, solver.train_acc_history, solver.val_acc_history, model_key=model_key)
     save_model(model, './models/cnn_model_' + model_key + '.p')
 
-def save_metrics(solver, model_key):
-    pickle.dump(solver.loss_history,open('./metrics/'+model_key+'_loss_history.p','wb'))
-    pickle.dump(solver.train_acc_history,open('./metrics/'+model_key+'_train_acc_history.p','wb'))
-    pickle.dump(solver.val_acc_history,open('./metrics/'+model_key+'_val_acc_history.p','wb'))
 
 data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 
@@ -59,10 +47,11 @@ data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 # data['X_train'] = np.concatenate((data['X_train'], aug_X_train), 0)
 # data['y_train'] = np.concatenate((data['y_train'], data['y_train']), 0)
 
+
 for k, v in data.items():
     print('%s:  ' % k, v.shape)
 
-#train_model('conv64_filter5_fc512_drop0')
+train_model('conv64_filter5_fc512_drop0')
 train_model('conv64_filter5_fc512_drop05')
 train_model('conv128_filter3_fc1024_drop0')
 train_model('conv128_filter3_fc1024_drop05')
