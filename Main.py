@@ -3,14 +3,12 @@ from __future__ import print_function
 
 import Models
 import code_base.solver as slvr
-from Plotter import *
+from Plotter import plot_graph
 from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
 
 settings.time_analysis['logger_enabled'] = False
-
-
 
 # for auto-reloading external modules
 # see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
@@ -19,8 +17,6 @@ def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
 
-
-# Load the (preprocessed) CIFAR2 (airplane and bird) data.
 
 def getSolver(model, data, alpha, alpha_decay, epoch=10, batch_size=128):
     return Solver(model, data, num_epochs=epoch, batch_size=batch_size,
@@ -33,7 +29,7 @@ def getSolver(model, data, alpha, alpha_decay, epoch=10, batch_size=128):
 def train_model(model_key):
     slvr._file.write('\n\n>>>> MODEL - ' + model_key + ' <<<<')
     model = Models.Models[model_key]
-    solver = getSolver(model=model, data=data, alpha=1e-3, alpha_decay=0.8, epoch=3)
+    solver = getSolver(model=model, data=data, alpha=1e-3, alpha_decay=0.8, epoch=30)
     start = datetime.datetime.now()
     solver.train()
     end = datetime.datetime.now()
@@ -42,7 +38,6 @@ def train_model(model_key):
 
     plot_graph(solver.loss_history, solver.train_acc_history, solver.val_acc_history, model_key=model_key)
     save_model(model, './models/cnn_model_' + model_key + '.p')
-
 
 
 data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
