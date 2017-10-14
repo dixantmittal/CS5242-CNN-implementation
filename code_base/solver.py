@@ -13,6 +13,8 @@ import numpy as np
 from code_base import optim
 import settings
 
+_file = open('./application.log', 'w')
+
 
 class Solver(object):
     """
@@ -276,7 +278,7 @@ class Solver(object):
 
             # Maybe print training loss
             if self.verbose and t % self.print_every == 0:
-                print('(Iteration %d / %d) loss: %f' % (
+                _file.write('\n(Iteration %d / %d) loss: %f' % (
                     t + 1, num_iterations, self.loss_history[-1]))
 
             # At the end of every epoch, increment the epoch counter and decay
@@ -301,8 +303,9 @@ class Solver(object):
                 self._save_checkpoint()
 
                 if self.verbose:
-                    print('(Epoch %d / %d) train acc: %f; val_acc: %f' % (
+                    _file.write('\n(Epoch %d / %d) train acc: %f; val_acc: %f' % (
                         self.epoch, self.num_epochs, train_acc, val_acc))
+                    _file.flush()
 
                     # Keep track of the best model
                     if val_acc > self.best_val_acc:
@@ -320,4 +323,4 @@ class Solver(object):
         self.model.params = self.best_params
         train_acc = self.check_accuracy(self.X_train, self.y_train)
         val_acc = self.check_accuracy(self.X_val, self.y_val)
-        print('(Final Model) train acc: %f; val_acc: %f' % (train_acc, val_acc))
+        _file.write('\n(Final Model) train acc: %f; val_acc: %f' % (train_acc, val_acc))
