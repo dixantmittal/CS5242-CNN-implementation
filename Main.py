@@ -36,9 +36,13 @@ def train_model(model_key):
     slvr._file.write('\nTotal time taken: ' + str(end - start))
     slvr._file.flush()
 
-    plot_graph(solver.loss_history, solver.train_acc_history, solver.val_acc_history, model_key=model_key)
+    save_metrics(solver,model_key)
     save_model(model, './models/cnn_model_' + model_key + '.p')
 
+def save_metrics(solver, model_key):
+    pickle.dump(solver.loss_history,open('./metrics/'+model_key+'_loss_history.p','wb')) 
+    pickle.dump(solver.train_acc_history,open('./metrics/'+model_key+'_train_acc_history.p','wb'))
+    pickle.dump(solver.val_acc_history,open('./metrics/'+model_key+'_val_acc_history.p','wb'))
 
 data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 
@@ -51,8 +55,8 @@ data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 for k, v in data.items():
     print('%s:  ' % k, v.shape)
 
-train_model('conv64_filter5_fc512_drop0')
-train_model('conv64_filter5_fc512_drop05')
+#train_model('conv64_filter5_fc512_drop0')
+#train_model('conv64_filter5_fc512_drop05')
 train_model('conv128_filter3_fc1024_drop0')
 train_model('conv128_filter3_fc1024_drop05')
 train_model('conv32_filter7_fc256_drop0')
