@@ -3,7 +3,6 @@ from __future__ import print_function
 
 import Models
 import code_base.solver as slvr
-from Plotter import plot_graph
 from code_base.data_utils import *
 from code_base.layers import *
 from code_base.solver import Solver
@@ -29,13 +28,14 @@ def getSolver(model, data, alpha, alpha_decay, epoch=10, batch_size=128):
 def train_model(model_key):
     slvr._file.write('\n\n>>>> MODEL - ' + model_key + ' <<<<')
     model = Models.Models[model_key]
-    solver = getSolver(model=model, data=data, alpha=1e-3, alpha_decay=0.8, epoch=30)
+    solver = getSolver(model=model, data=data, alpha=3e-3, alpha_decay=0.5, epoch=15)
     start = datetime.datetime.now()
     solver.train()
     end = datetime.datetime.now()
     slvr._file.write('\nTotal time taken: ' + str(end - start))
     slvr._file.flush()
 
+    model_key = model_key + '_alpha3e-3'
     save_metrics(solver,model_key)
     save_model(model, './models/cnn_model_' + model_key + '.p')
 
@@ -55,9 +55,9 @@ data = pickle.load(open('./data.p', 'rb'), encoding='latin1')
 for k, v in data.items():
     print('%s:  ' % k, v.shape)
 
-#train_model('conv64_filter5_fc512_drop0')
-#train_model('conv64_filter5_fc512_drop05')
-train_model('conv128_filter3_fc1024_drop0')
-train_model('conv128_filter3_fc1024_drop05')
 train_model('conv32_filter7_fc256_drop0')
-train_model('conv32_filter7_fc256_drop05')
+train_model('conv32_filter7_fc256_drop02')
+# train_model('conv64_filter5_fc512_drop0')
+# train_model('conv64_filter5_fc512_drop03')
+# train_model('conv128_filter3_fc1024_drop0')
+# train_model('conv128_filter3_fc1024_drop04')
